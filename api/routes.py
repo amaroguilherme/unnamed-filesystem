@@ -1,7 +1,10 @@
 import logging
 import os
+import threading
 
 from flask import Blueprint, jsonify, request, send_from_directory
+
+from file_orchestrator import FileConsumer, FileProducer, Orchestrator
 
 log = logging.getLogger()
 log.setLevel(logging.INFO)
@@ -15,9 +18,15 @@ api: Blueprint = Blueprint('api', __name__)
 def upload():
     try:
         file = request.files.get('file')
-        filename: str = file.filename 
+
+        file_orchestrator: Orchestrator = Orchestrator(file=file)
+        file_producer: FileProducer = FileProducer(file_orchestrator)
+        file_consumer: FileConsumer = FileConsumer(file_orchestrator)
         
-        file.save(dst=f'files/{filename}')
+        thread: threading.Thread = threading.Thread(target=file_producer.producer)
+        thread.start()
+        
+        file_consumer.start()
         
     except Exception as e:
         log.error(e)
