@@ -20,13 +20,7 @@ def upload():
         file = request.files.get('file')
 
         file_orchestrator: Orchestrator = Orchestrator(file=file)
-        file_producer: FileProducer = FileProducer(file_orchestrator)
-        file_consumer: FileConsumer = FileConsumer(file_orchestrator)
-        
-        thread: threading.Thread = threading.Thread(target=file_producer.producer)
-        thread.start()
-        
-        file_consumer.start()
+        process_complete: bool = file_orchestrator.orchestrate()
         
     except Exception as e:
         log.error(e)
